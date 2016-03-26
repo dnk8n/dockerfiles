@@ -1,0 +1,17 @@
+FROM dnk8n/ubuntu-mate-xrdp
+MAINTAINER "Dean Kayton <deankayton@gmail.com>"
+
+ENV DEBIAN_FRONTEND noninteractive
+
+# User
+RUN useradd -m -d /home/guest -p guest guest
+RUN echo "guest:docker" | chpasswd
+RUN chsh -s /bin/bash guest
+RUN adduser guest sudo
+RUN adduser guest fuse
+RUN echo "/usr/bin/mate-session" > /home/guest/.xsession
+
+ADD init.script /init.script
+
+EXPOSE 3389
+CMD ["/init.script"]
