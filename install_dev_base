@@ -1,0 +1,60 @@
+#/bin/bash
+
+adduser --quiet --disabled-password --gecos "" docker && echo "docker:docker" | chpasswd && usermod -aG sudo docker
+apt-get update && apt-get -y install \
+    curl \
+    python-software-properties
+add-apt-repository -y ppa:git-core/ppa && \
+    curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
+    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv 7F0CEB10 && echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | tee /etc/apt/sources.list.d/mongodb.list && \
+    curl -sL https://deb.nodesource.com/setup_0.10 | bash -
+apt-get update && apt-get -y install \
+    cython \
+    build-essential \
+    g++ \
+    gcc \
+    git-core \
+    graphviz \
+    graphviz-dev \
+    libcgraph5 \
+    libev-dev \
+    libevent-dev \
+    libldap2-dev \
+    libncurses5-dev \
+    libsasl2-dev \
+    libsqlite3-dev \
+    libxml2-dev \
+    libxslt1-dev \
+    make \
+    mongodb-org=2.6.10 \
+    nginx \
+    pkg-config \
+    python-dev \
+    ssl-cert \
+    supervisor \
+    sudo \
+    wget \
+    zlib1g-dev
+curl -Lo /tmp/openssl-fips-tmp.tar.gz "https://www.openssl.org/source/openssl-fips-2.0.9.tar.gz" && \
+    mkdir -p /tmp/openssl-fips-tmp/ && \
+    tar xzf /tmp/openssl-fips-tmp.tar.gz -C /tmp/openssl-fips-tmp/ --strip-components 1 && \
+    cd /tmp/openssl-fips-tmp/ && ./config && make && make install && cd ~/ && \
+    rm /tmp/openssl-fips-tmp.tar.gz && rm -rf /tmp/openssl-fips-tmp/
+curl -Lo /tmp/openssl-tmp.tar.gz "https://www.openssl.org/source/openssl-1.0.1p.tar.gz" && \
+    mkdir -p /tmp/openssl-tmp/ && \
+    tar xzf /tmp/openssl-tmp.tar.gz -C /tmp/openssl-tmp/ --strip-components 1 && \
+    cd /tmp/openssl-tmp/ && ./config fips shared && make depend && make && make install && rm /usr/bin/openssl && ln -s /usr/local/ssl/bin/openssl /usr/bin/openssl && cd ~/ && \
+    rm /tmp/openssl-tmp.tar.gz && rm -rf /tmp/openssl-tmp/
+curl -Lo /tmp/python-2.7.3-tmp.tgz "https://www.python.org/ftp/python/2.7.3/Python-2.7.3.tgz" && \
+    mkdir -p /tmp/python-2.7.3-tmp/ && \
+    tar xzf /tmp/python-2.7.3-tmp.tgz -C /tmp/python-2.7.3-tmp/ --strip-components 1 && \
+    cd /tmp/python-2.7.3-tmp/ && ./configure --enable-unicode=ucs4 --prefix=/usr/local/lib/python2.7.3.fips CPPFLAGS="-I/usr/local/ssl/include/openssl" LDFLAGS="-Wl,-rpath=/usr/local/ssl/lib -L/usr/local/ssl/lib" && make && make altinstall && ln -s /usr/local/lib/python2.7.3.fips/bin/python2.7 /usr/local/bin/python && cd ~/ && \
+    rm /tmp/python-2.7.3-tmp.tgz && rm -rf /tmp/python-2.7.3-tmp/
+curl -Lo /tmp/get-pip-tmp.py "https://bootstrap.pypa.io/get-pip.py" && \
+    python /tmp/get-pip-tmp.py && \
+    rm -f /usr/local/bin/pip && ln -s /usr/local/lib/python2.7.3.fips/bin/pip /usr/local/bin/pip && \
+    pip install -U pip && pip install -U virtualenv && \
+    rm -f /usr/local/bin/virtualenv && ln -s /usr/local/lib/python2.7.3.fips/bin/virtualenv /usr/local/bin/virtualenv && \
+    pip install -U setuptools && pip install -U distribute && \
+    rm /tmp/get-pip-tmp.py
+mkdir -p /home/docker/src/dev-repo/ && chown -R docker:docker /home/docker/
